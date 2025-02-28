@@ -49,14 +49,13 @@
     /* Board styling */
     #board { 
       display: grid; 
-      grid-template-columns: repeat(3, 100px); 
-      grid-template-rows: repeat(3, 100px); 
+      grid-template-columns: repeat(4, 100px); 
+      grid-template-rows: repeat(4, 100px); 
       gap: 2px; 
       margin: 20px auto; 
-      width: 306px; 
+      width: 406px; 
       border: 1px solid #333; 
       background: transparent;
-
     }
     .cell { 
       width: 100px; 
@@ -160,8 +159,8 @@
     function drawBoard() {
       const boardDiv = document.getElementById("board");
       boardDiv.innerHTML = "";
-      const files = ['a','b','c'];
-      const ranks = [3,2,1];
+      const files = ['a','b','c','d'];
+      const ranks = [4,3,2,1];
       // (No flipping is implemented here; board remains in canonical orientation.)
       for (let r of ranks) {
         for (let f of files) {
