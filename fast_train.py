@@ -131,7 +131,7 @@ def update_q_values(game_history, winner):
             else:
                 q_table[player][state_key][action_str] -= 1
     # Persist the Q table.
-    save_q_table(q_table)
+    # save_q_table(q_table)
 
 def simulate_game():
     """Simulate a single game and update Q values at the end. Return the winner and number of moves."""
@@ -171,6 +171,7 @@ if __name__ == '__main__':
         if (i+1) % 100 == 0:
             print(f"Game {i+1}: Winner = {winner}, Moves = {num_moves}")
     end_time = time.time()
+    save_q_table(q_table)
     print("\nTraining complete!")
     print(f"Total games: {NUM_GAMES}")
     print(f"White wins: {wins['W']}, Black wins: {wins['B']}")

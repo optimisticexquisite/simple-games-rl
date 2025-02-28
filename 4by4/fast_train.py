@@ -1,4 +1,4 @@
-import uuid, random, json, os, time
+import uuid, random, json, os, time, tqdm
 
 Q_TABLE_FILE = "q_table.json"
 
@@ -134,7 +134,7 @@ def update_q_values(game_history, winner):
             else:
                 q_table[player][state_key][action_str] -= 1
     # Persist the Q table.
-    save_q_table(q_table)
+    # save_q_table(q_table)
 
 def simulate_game():
     """Simulate a single game and update Q values at the end. Return the winner and number of moves."""
@@ -163,17 +163,18 @@ def simulate_game():
     return winner, len(game_history)
 
 if __name__ == '__main__':
-    NUM_GAMES = 10000
+    NUM_GAMES = 1000000
     wins = {"W": 0, "B": 0}
     total_moves = 0
     start_time = time.time()
-    for i in range(NUM_GAMES):
+    for i in tqdm.tqdm(range(NUM_GAMES)):
         winner, num_moves = simulate_game()
         wins[winner] += 1
         total_moves += num_moves
         if (i+1) % 100 == 0:
             print(f"Game {i+1}: Winner = {winner}, Moves = {num_moves}")
     end_time = time.time()
+    save_q_table(q_table)
     print("\nTraining complete!")
     print(f"Total games: {NUM_GAMES}")
     print(f"White wins: {wins['W']}, Black wins: {wins['B']}")
