@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>PLAY</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 0; 
+      padding: 0; 
+      background-color: #a0ccf9; /* blue background */
+    }
+    /* Top header with IISc logo and event title */
+    #topHeader {
+      background: #167ee7; /* dark blue */
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      border-bottom: 1px solid #ccc;
+    }
+    #topHeader img {
+      height: 50px;
+      margin-right: 15px;
+    }
+    #topHeader h1 {
+      font-size: 24px;
+      margin: 0;
+    }
+    /* Fixed header showing current turn */
+    #header {
+      background: #003366;
+      padding: 10px;
+      text-align: center;
+      font-size: 20px;
+      border-bottom: 1px solid #ccc;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      color: white;
+    }
+    /* Side selection area */
+    #sideSelect {
+      text-align: center;
+      margin: 10px;
+      color: white;
+    }
+    /* Board styling */
+    #board { 
+      display: grid; 
+      grid-template-columns: repeat(3, 100px); 
+      grid-template-rows: repeat(3, 100px); 
+      gap: 2px; 
+      margin: 20px auto; 
+      width: 306px; 
+      border: 1px solid #333; 
+      background: transparent;
+
+    }
+    .cell { 
+      width: 100px; 
+      height: 100px; 
+      border: 1px solid #333; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      font-size: 24px; 
+      position: relative; 
+    }
+    .draggable { cursor: move; }
+    .white { 
+      color: white; 
+      background-color: gray; 
+      border-radius: 50%; 
+      width: 50px; 
+      height: 50px; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+    }
+    .black { 
+      color: black; 
+      background-color: lightgray; 
+      border-radius: 50%; 
+      width: 50px; 
+      height: 50px; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+    }
+    /* Status message */
+    #status {
+      text-align: center; 
+      margin-top: 10px; 
+      color: white;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top header with logo and event title -->
+  <div id="topHeader">
+    <img src="https://iisc.ac.in/wp-content/uploads/2020/08/IISc_Master_Seal_Black_Transparent.png" alt="IISc Logo">
+    <h1>MERGE : Open Day 2025, Department of Mathematics, IISc</h1>
+  </div>
+  
+  <!-- Fixed header for current turn -->
+  <div id="header">
+    Current turn: <span id="currentTurn">--</span>
+  </div>
+  
+  <!-- Side selection and game start -->
+  <div id="sideSelect">
+    Choose your side: 
+    <select id="playerSide">
+      <option value="W">White</option>
+      <option value="B">Black</option>
+    </select>
+    <button id="startGame">Start Game</button>
+  </div>
+  
+  <!-- Game board -->
+  <div id="board"></div>
+  
+  <!-- Status message -->
+  <div id="status">Select your side and click "Start Game" to begin.</div>
+  <center><button id="backToTraining" onclick="window.location.href='/'">Back to Training</button></center>
+  
+  <script>
+    let gameID = null;
+    let boardState = {};
+    let turn = null;
+    let playerSide = "W"; // "W" for white, "B" for black
+
+    // Update player side based on dropdown selection.
+    document.getElementById("playerSide").addEventListener("change", function(){
+      playerSide = this.value;
+    });
+    
+    // Start game button: calls /play_drag/start.
+    document.getElementById("startGame").addEventListener("click", function(){
+      fetch('/play_drag/start', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ player_side: playerSide })
+      })
+      .then(response => response.json())
+      .then(data => {
+         gameID = data.gameID;
+         boardState = data.board;
+         turn = data.turn;
+         document.getElementById("currentTurn").textContent = (turn === playerSide) ? "Your move" : "Computer move";
+         document.getElementById("status").textContent = data.message;
+         drawBoard();
+      });
+    });
+    
+    // Draw the board based on boardState.
+    function drawBoard() {
+      const boardDiv = document.getElementById("board");
+      boardDiv.innerHTML = "";
+      const files = ['a','b','c'];
+      const ranks = [3,2,1];
+      // (No flipping is implemented here; board remains in canonical orientation.)
+      for (let r of ranks) {
+        for (let f of files) {
+          let cellId = f + r;
+          let cell = document.createElement("div");
+          cell.className = "cell";
+          cell.id = cellId;
+          cell.addEventListener("dragover", allowDrop);
+          cell.addEventListener("drop", dropPiece);
+          if (boardState[cellId]) {
+            let piece = document.createElement("div");
+            piece.textContent = boardState[cellId] === 'W' ? '♙' : '♟︎';
+            piece.className = boardState[cellId] === 'W' ? "white draggable" : "black draggable";
+            piece.draggable = true;
+            piece.addEventListener("dragstart", dragStart);
+            cell.appendChild(piece);
+          }
+          boardDiv.appendChild(cell);
+        }
+      }
+    }
+    
+    // Drag and drop handlers.
+    function dragStart(event) {
+      event.dataTransfer.setData("text/plain", event.target.parentElement.id);
+    }
+    
+    function allowDrop(event) {
+      event.preventDefault();
+    }
+    
+    function dropPiece(event) {
+      event.preventDefault();
+      // Only allow move if it's human's turn.
+      if (turn !== playerSide) {
+         document.getElementById("status").textContent = "Not your turn.";
+         return;
+      }
+      let srcCell = event.dataTransfer.getData("text/plain");
+      let destCell = event.currentTarget.id;
+      // Send move to server via /play_drag/move.
+      fetch('/play_drag/move', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ gameID: gameID, from: srcCell, to: destCell })
+      })
+      .then(response => response.json())
+      .then(data => {
+         if(data.error) {
+            document.getElementById("status").textContent = data.error + ". Valid moves: " + (data.valid_moves || []).join(", ");
+            return;
+         }
+         boardState = data.board;
+         turn = data.turn;
+         let statusMsg = data.message;
+         if(data.human_move) statusMsg += " You played " + data.human_move + ".";
+         if(data.computer_move) statusMsg += " Computer played " + data.computer_move + ".";
+         if(data.winner) statusMsg += " Winner: " + data.winner + ".";
+         document.getElementById("status").textContent = statusMsg;
+         document.getElementById("currentTurn").textContent = (turn === playerSide) ? "Your move" : "Computer move";
+         drawBoard();
+      });
+    }
+  </script>
+</body>
+</html>
