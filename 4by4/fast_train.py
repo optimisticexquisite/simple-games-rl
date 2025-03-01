@@ -163,7 +163,7 @@ def simulate_game():
     return winner, len(game_history)
 
 if __name__ == '__main__':
-    NUM_GAMES = 1000000
+    NUM_GAMES = 10000000
     wins = {"W": 0, "B": 0}
     total_moves = 0
     start_time = time.time()
@@ -171,8 +171,8 @@ if __name__ == '__main__':
         winner, num_moves = simulate_game()
         wins[winner] += 1
         total_moves += num_moves
-        if (i+1) % 100 == 0:
-            print(f"Game {i+1}: Winner = {winner}, Moves = {num_moves}")
+        # if (i+1) % 100 == 0:
+        #     print(f"Game {i+1}: Winner = {winner}, Moves = {num_moves}")
     end_time = time.time()
     save_q_table(q_table)
     print("\nTraining complete!")
