@@ -1,179 +1,391 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>PLAY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pawn Wars | Play</title>
   <style>
-    body { 
-      font-family: Arial, sans-serif; 
-      margin: 0; 
-      padding: 0; 
-      background-color: #a0ccf9; /* blue background */
+    @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@600;700&family=Sora:wght@400;600;700&display=swap');
+
+    :root {
+      --bg-1: #00b5d8;
+      --bg-2: #ff8a00;
+      --bg-3: #2ec27e;
+      --bg-4: #ff4d6d;
+      --panel: rgba(14, 30, 72, 0.24);
+      --panel-border: rgba(255, 255, 255, 0.35);
+      --text-main: #f9fbff;
+      --shadow: 0 20px 40px rgba(9, 19, 52, 0.28);
     }
-    /* Top header with IISc logo and event title */
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text-main);
+      font-family: "Sora", "Trebuchet MS", sans-serif;
+      background: linear-gradient(120deg, var(--bg-1), var(--bg-2), var(--bg-3), var(--bg-4));
+      background-size: 300% 300%;
+      animation: gradientFlow 14s ease infinite;
+      overflow-x: hidden;
+      position: relative;
+      padding-bottom: 18px;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: -1;
+      opacity: 0.48;
+      filter: blur(2px);
+    }
+
+    body::before {
+      width: 360px;
+      height: 360px;
+      left: -80px;
+      top: -110px;
+      background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0));
+      animation: drift 16s ease-in-out infinite;
+    }
+
+    body::after {
+      width: 430px;
+      height: 430px;
+      right: -140px;
+      bottom: -140px;
+      background: radial-gradient(circle at 70% 40%, rgba(255, 243, 165, 0.62), rgba(255, 243, 165, 0));
+      animation: drift 18s ease-in-out infinite reverse;
+    }
+
     #topHeader {
-      background: #167ee7; /* dark blue */
-      color: white;
+      margin: 16px;
+      border: 1px solid var(--panel-border);
+      border-radius: 20px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 10px;
-      border-bottom: 1px solid #ccc;
+      gap: 14px;
+      padding: 14px 16px;
+      animation: fadeUp 0.55s ease;
     }
-    #topHeader img {
-      height: 50px;
-      margin-right: 15px;
-    }
-    #topHeader h1 {
-      font-size: 24px;
-      margin: 0;
-    }
-    /* Fixed header showing current turn */
-    #header {
-      background: #003366;
-      padding: 10px;
-      text-align: center;
-      font-size: 20px;
-      border-bottom: 1px solid #ccc;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      color: white;
-    }
-    /* Side selection area */
-    #sideSelect {
-      text-align: center;
-      margin: 10px;
-      color: rgb(0, 0, 0);
-    }
-    /* Board styling */
-    #board { 
-      display: grid; 
-      grid-template-columns: repeat(3, 100px); 
-      grid-template-rows: repeat(3, 100px); 
-      gap: 2px; 
-      margin: 20px auto; 
-      width: 306px; 
-      border: 1px solid #333; 
-      background: transparent;
 
+    #topHeader img {
+      height: 56px;
+      width: 56px;
+      border-radius: 50%;
+      object-fit: contain;
+      background: rgba(255, 255, 255, 0.72);
+      padding: 5px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
     }
-    .cell { 
-      width: 100px; 
-      height: 100px; 
-      border: 1px solid #333; 
-      display: flex; 
-      justify-content: center; 
-      align-items: center; 
-      font-size: 24px; 
-      position: relative; 
+
+    #titleWrap h1 {
+      margin: 0;
+      font-family: "Exo 2", "Trebuchet MS", sans-serif;
+      font-size: clamp(1.1rem, 2vw, 1.65rem);
+      letter-spacing: 0.25px;
+      text-align: center;
     }
-    .draggable { cursor: move; }
-    .white { 
-      color: white; 
-      background-color: gray; 
-      border-radius: 50%; 
-      width: 50px; 
-      height: 50px; 
-      display: flex; 
-      justify-content: center; 
-      align-items: center; 
+
+    #header {
+      margin: 0 16px 16px;
+      padding: 12px 16px;
+      border-radius: 16px;
+      border: 1px solid var(--panel-border);
+      background: rgba(8, 28, 70, 0.35);
+      backdrop-filter: blur(7px);
+      text-align: center;
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      position: sticky;
+      top: 8px;
+      z-index: 20;
+      box-shadow: var(--shadow);
+      animation: fadeUp 0.7s ease;
     }
-    .black { 
-      color: black; 
-      background-color: lightgray; 
-      border-radius: 50%; 
-      width: 50px; 
-      height: 50px; 
-      display: flex; 
-      justify-content: center; 
-      align-items: center; 
+
+    #currentTurn {
+      font-weight: 700;
+      color: #fff7c7;
     }
-    /* Status message */
+
+    .panel {
+      width: min(920px, calc(100% - 32px));
+      margin: 0 auto;
+      border: 1px solid var(--panel-border);
+      border-radius: 18px;
+      background: var(--panel);
+      backdrop-filter: blur(8px);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      animation: fadeUp 0.9s ease;
+    }
+
+    #sideSelect {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      text-align: center;
+    }
+
+    #sideSelect label {
+      font-weight: 600;
+    }
+
+    select,
+    button {
+      border: none;
+      border-radius: 999px;
+      font-family: "Sora", "Trebuchet MS", sans-serif;
+      font-weight: 700;
+      color: #ffffff;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+    }
+
+    select {
+      appearance: none;
+      background: linear-gradient(120deg, #2b6de7, #00a5c4);
+      padding: 10px 34px 10px 14px;
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 18px;
+      background: linear-gradient(120deg, #ff9e2f, #ff5d8f);
+    }
+
+    button:hover,
+    select:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.05);
+      box-shadow: 0 14px 22px rgba(0, 0, 0, 0.24);
+    }
+
+    #board {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(88px, 110px));
+      grid-template-rows: repeat(3, minmax(88px, 110px));
+      justify-content: center;
+      gap: 8px;
+      margin: 16px auto;
+      animation: boardFloat 4.8s ease-in-out infinite;
+    }
+
+    .cell {
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.34);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 30px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+      transition: transform 0.2s ease;
+      overflow: hidden;
+    }
+
+    .cell:hover {
+      transform: translateY(-2px);
+    }
+
+    .cell.light {
+      background: linear-gradient(135deg, rgba(230, 253, 255, 0.86), rgba(183, 240, 255, 0.74));
+    }
+
+    .cell.dark {
+      background: linear-gradient(135deg, rgba(76, 163, 255, 0.72), rgba(33, 97, 213, 0.72));
+    }
+
+    .draggable {
+      cursor: grab;
+    }
+
+    .white,
+    .black {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: "Exo 2", "Trebuchet MS", sans-serif;
+      font-size: 33px;
+      box-shadow: 0 8px 18px rgba(12, 18, 42, 0.32);
+      animation: popIn 0.2s ease;
+      user-select: none;
+    }
+
+    .white {
+      color: #173d70;
+      background: linear-gradient(145deg, #ffffff, #cde4ff);
+      border: 2px solid rgba(255, 255, 255, 0.65);
+    }
+
+    .black {
+      color: #f8fbff;
+      background: linear-gradient(145deg, #132046, #001d51);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
     #status {
-      text-align: center; 
-      margin-top: 10px; 
-      color: rgb(0, 0, 0);
-      font-size: 18px;
+      max-width: 740px;
+      margin: 0 auto 14px;
+      text-align: center;
+      padding: 10px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      background: rgba(8, 26, 74, 0.34);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+
+    #backToTraining {
+      display: block;
+      margin: 0 auto;
+      background: linear-gradient(120deg, #2ec27e, #00b5d8);
+    }
+
+    @keyframes gradientFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes drift {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(20px, -18px) scale(1.08); }
+    }
+
+    @keyframes boardFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.88); opacity: 0.65; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 560px) {
+      #topHeader {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      #board {
+        grid-template-columns: repeat(3, minmax(78px, 96px));
+        grid-template-rows: repeat(3, minmax(78px, 96px));
+        gap: 6px;
+      }
+
+      .white,
+      .black {
+        width: 48px;
+        height: 48px;
+        font-size: 28px;
+      }
+
+      #sideSelect {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
 <body>
-  <!-- Top header with logo and event title -->
   <div id="topHeader">
-    <img src="https://iisc.ac.in/wp-content/uploads/2020/08/IISc_Master_Seal_Black_Transparent.png" alt="IISc Logo">
-    <h1>MERGE : Open Day 2025, Department of Mathematics, IISc</h1>
+    <img src="{{ url_for('static', filename='img/iisc-logo.png') }}" alt="IISc Logo">
+    <div id="titleWrap">
+      <h1>Pawn Wars at Department of Computer Science and Automation, IISc</h1>
+    </div>
   </div>
-  
-  <!-- Fixed header for current turn -->
+
   <div id="header">
     Current turn: <span id="currentTurn">--</span>
   </div>
-  
-  <!-- Side selection and game start -->
-  <div id="sideSelect">
-    Choose your side: 
-    <select id="playerSide">
-      <option value="W">White</option>
-      <option value="B">Black</option>
-    </select>
-    <button id="startGame">Start Game</button>
+
+  <div class="panel">
+    <div id="sideSelect">
+      <label for="playerSide">Choose your side</label>
+      <select id="playerSide">
+        <option value="W">White</option>
+        <option value="B">Black</option>
+      </select>
+      <button id="startGame">Start Game</button>
+    </div>
+
+    <div id="board"></div>
+
+    <div id="status">Select your side and click "Start Game" to begin.</div>
+    <button id="backToTraining" onclick="window.location.href='/'">Back to Training</button>
   </div>
-  
-  <!-- Game board -->
-  <div id="board"></div>
-  
-  <!-- Status message -->
-  <div id="status">Select your side and click "Start Game" to begin.</div>
-  <center><button id="backToTraining" onclick="window.location.href='/'">Back to Training</button></center>
-  
+
   <script>
     let gameID = null;
     let boardState = {};
     let turn = null;
     let playerSide = "W"; // "W" for white, "B" for black
 
+    const WHITE_PAWN = '\u2659';
+    const BLACK_PAWN = '\u265F';
+
     // Update player side based on dropdown selection.
-    document.getElementById("playerSide").addEventListener("change", function(){
+    document.getElementById("playerSide").addEventListener("change", function () {
       playerSide = this.value;
     });
-    
+
     // Start game button: calls /play_drag/start.
-    document.getElementById("startGame").addEventListener("click", function(){
+    document.getElementById("startGame").addEventListener("click", function () {
       fetch('/play_drag/start', {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ player_side: playerSide })
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ player_side: playerSide })
       })
       .then(response => response.json())
       .then(data => {
-         gameID = data.gameID;
-         boardState = data.board;
-         turn = data.turn;
-         document.getElementById("currentTurn").textContent = (turn === playerSide) ? "Your move" : "Computer move";
-         document.getElementById("status").textContent = data.message;
-         drawBoard();
+        gameID = data.gameID;
+        boardState = data.board;
+        turn = data.turn;
+        document.getElementById("currentTurn").textContent = (turn === playerSide) ? "Your move" : "Computer move";
+        document.getElementById("status").textContent = data.message;
+        drawBoard();
       });
     });
-    
+
     // Draw the board based on boardState.
     function drawBoard() {
       const boardDiv = document.getElementById("board");
       boardDiv.innerHTML = "";
-      const files = ['a','b','c'];
-      const ranks = [3,2,1];
-      // (No flipping is implemented here; board remains in canonical orientation.)
-      for (let r of ranks) {
-        for (let f of files) {
-          let cellId = f + r;
-          let cell = document.createElement("div");
+      const files = ['a', 'b', 'c'];
+      const ranks = [3, 2, 1];
+      for (const r of ranks) {
+        for (const f of files) {
+          const cellId = f + r;
+          const cell = document.createElement("div");
           cell.className = "cell";
+          const isLight = (files.indexOf(f) + r) % 2 === 0;
+          cell.classList.add(isLight ? "light" : "dark");
           cell.id = cellId;
           cell.addEventListener("dragover", allowDrop);
           cell.addEventListener("drop", dropPiece);
           if (boardState[cellId]) {
-            let piece = document.createElement("div");
-            piece.textContent = boardState[cellId] === 'W' ? '♙' : '♟︎';
+            const piece = document.createElement("div");
+            piece.textContent = boardState[cellId] === 'W' ? WHITE_PAWN : BLACK_PAWN;
             piece.className = boardState[cellId] === 'W' ? "white draggable" : "black draggable";
             piece.draggable = true;
             piece.addEventListener("dragstart", dragStart);
@@ -183,46 +395,46 @@
         }
       }
     }
-    
+
     // Drag and drop handlers.
     function dragStart(event) {
       event.dataTransfer.setData("text/plain", event.target.parentElement.id);
     }
-    
+
     function allowDrop(event) {
       event.preventDefault();
     }
-    
+
     function dropPiece(event) {
       event.preventDefault();
       // Only allow move if it's human's turn.
       if (turn !== playerSide) {
-         document.getElementById("status").textContent = "Not your turn.";
-         return;
+        document.getElementById("status").textContent = "Not your turn.";
+        return;
       }
-      let srcCell = event.dataTransfer.getData("text/plain");
-      let destCell = event.currentTarget.id;
+      const srcCell = event.dataTransfer.getData("text/plain");
+      const destCell = event.currentTarget.id;
       // Send move to server via /play_drag/move.
       fetch('/play_drag/move', {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ gameID: gameID, from: srcCell, to: destCell })
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gameID: gameID, from: srcCell, to: destCell })
       })
       .then(response => response.json())
       .then(data => {
-         if(data.error) {
-            document.getElementById("status").textContent = data.error + ". Valid moves: " + (data.valid_moves || []).join(", ");
-            return;
-         }
-         boardState = data.board;
-         turn = data.turn;
-         let statusMsg = data.message;
-         if(data.human_move) statusMsg += " You played " + data.human_move + ".";
-         if(data.computer_move) statusMsg += " Computer played " + data.computer_move + ".";
-         if(data.winner) statusMsg += " Winner: " + data.winner + ".";
-         document.getElementById("status").textContent = statusMsg;
-         document.getElementById("currentTurn").textContent = (turn === playerSide) ? "Your move" : "Computer move";
-         drawBoard();
+        if (data.error) {
+          document.getElementById("status").textContent = `${data.error}. Valid moves: ${(data.valid_moves || []).join(", ")}`;
+          return;
+        }
+        boardState = data.board;
+        turn = data.turn;
+        let statusMsg = data.message;
+        if (data.human_move) statusMsg += ` You played ${data.human_move}.`;
+        if (data.computer_move) statusMsg += ` Computer played ${data.computer_move}.`;
+        if (data.winner) statusMsg += ` Winner: ${data.winner}.`;
+        document.getElementById("status").textContent = statusMsg;
+        document.getElementById("currentTurn").textContent = (turn === playerSide) ? "Your move" : "Computer move";
+        drawBoard();
       });
     }
   </script>

@@ -74,9 +74,17 @@ def board_to_state_key(board, player):
     return player + "|" + state_repr
 
 def choose_action(player, board, game_history):
+    """
+    Now returns a tuple:
+      (chosen_move, q_actions, q_values)
+    where:
+      - chosen_move is a tuple (src, dst) or None if no moves.
+      - q_actions is a list of action strings considered.
+      - q_values is a list of corresponding Q-values.
+    """
     possible_moves = get_possible_moves(board, player)
     if not possible_moves:
-        return None  # no moves available
+        return None, [], []  # no moves available
     state_key = board_to_state_key(board, player)
     # Initialize Q values for all possible moves in this state if not present.
     if state_key not in q_table[player]:
@@ -102,7 +110,7 @@ def choose_action(player, board, game_history):
             break
     # Record this state-action pair in the game's history.
     game_history.append((player, state_key, chosen_action_str))
-    return chosen_move
+    return chosen_move, actions, q_values
 
 def check_game_over(board, current_player):
     """
@@ -139,7 +147,7 @@ def start():
     # Set up the game state with white's turn and an empty history.
     games[gameID] = {"board": board, "turn": "W", "history": []}
     current_player = "W"
-    move = choose_action(current_player, board, games[gameID]["history"])
+    move, _, _ = choose_action(current_player, board, games[gameID]["history"])
     if move is None:
         # No moves available—white loses immediately.
         update_q_values(games[gameID]["history"], "B")
@@ -194,6 +202,9 @@ def start():
     }
     return jsonify(response)
 
+@app.route('/')
+def index():
+    return render_template('index.html')
 @app.route('/continue', methods=['POST'])
 def continue_game():
     data = request.get_json()
@@ -202,7 +213,7 @@ def continue_game():
         return jsonify({"error": "Invalid gameID"})
     board = games[gameID]["board"]
     current_player = games[gameID]["turn"]
-    move = choose_action(current_player, board, games[gameID]["history"])
+    move, _, _ = choose_action(current_player, board, games[gameID]["history"])
     if move is None:
         # No moves available – current player loses.
         winner = "B" if current_player == "W" else "W"
@@ -258,10 +269,6 @@ def continue_game():
     }
     return jsonify(response)
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
 @app.route('/play_drag/start', methods=['POST'])
 def play_drag_start():
     data = request.get_json()
@@ -274,9 +281,15 @@ def play_drag_start():
     if player_side == "W":
         turn = "W"
         message = "Game started. Your move."
+        response = {
+            "gameID": gameID,
+            "board": board,
+            "turn": turn,
+            "message": message
+        }
     else:
         # If playing as Black, computer plays as White first.
-        comp_move = choose_action("W", board, history)
+        comp_move, comp_q_actions, comp_q_values = choose_action("W", board, history)
         if comp_move:
             src, dst = comp_move
             if dst in board:
@@ -286,16 +299,24 @@ def play_drag_start():
             history.append(("W", board_to_state_key(board, "W"), src+dst))
             turn = "B"
             message = f"Computer played {src+dst}. Your move as Black."
+            response = {
+                "gameID": gameID,
+                "board": board,
+                "turn": turn,
+                "message": message,
+                "computer_qvalues": {"actions": comp_q_actions, "values": comp_q_values}
+            }
         else:
             turn = "B"
             message = "Game Over"
+            response = {
+                "gameID": gameID,
+                "board": board,
+                "turn": turn,
+                "message": message
+            }
     games[gameID] = {"board": board, "turn": turn, "history": history, "mode": "play_drag", "player_side": player_side}
-    return jsonify({
-         "gameID": gameID,
-         "board": board,
-         "turn": turn,
-         "message": message
-    })
+    return jsonify(response)
 
 @app.route('/play_drag/move', methods=['POST'])
 def play_drag_move():
@@ -333,7 +354,7 @@ def play_drag_move():
               "turn": None
         })
     # Computer's turn.
-    comp_move = choose_action(computer_player, board, game["history"])
+    comp_move, comp_q_actions, comp_q_values = choose_action(computer_player, board, game["history"])
     if comp_move is None:
         winner = human_player
         update_q_values(game["history"], winner)
@@ -366,6 +387,7 @@ def play_drag_move():
          "board": board,
          "human_move": human_from+human_to,
          "computer_move": comp_from+comp_to,
+         "computer_qvalues": {"actions": comp_q_actions, "values": comp_q_values},
          "possible_moves": [m[0]+m[1] for m in valid_moves],
          "turn": turn,
          "winner": "white" if over and winner=="W" else "black" if over else None
