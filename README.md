@@ -1,5 +1,6 @@
-# Pawn Wars at Department of Computer Science and Automation, IISc
+# Pawn Wars
 
+Welcome to OPEN DAY at the Department of Computer Science and Automation, IISc!
 Pawn Wars is a reinforcement-learning-powered pawn-only chess variant with two playable versions:
 
 - `3x3` board (root app)
