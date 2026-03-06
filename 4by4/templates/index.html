@@ -285,6 +285,32 @@
       font-family: "Exo 2", "Trebuchet MS", sans-serif;
     }
 
+    /* Mini piece styling: separate element so piece color isn't inherited from the cell */
+    .mini-piece {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Exo 2", "Trebuchet MS", sans-serif;
+      font-size: 20px;
+      box-shadow: 0 6px 12px rgba(12, 18, 42, 0.24);
+      user-select: none;
+    }
+
+    .mini-piece.white {
+      color: #173d70;
+      background: linear-gradient(145deg, #ffffff, #cde4ff);
+      border: 1.5px solid rgba(255, 255, 255, 0.72);
+    }
+
+    .mini-piece.black {
+      color: #f8fbff;
+      background: linear-gradient(145deg, #132046, #001d51);
+      border: 1.5px solid rgba(255, 255, 255, 0.28);
+    }
+
     .mini-cell.light {
       background: rgba(235, 251, 255, 0.85);
       color: #183b66;
@@ -512,7 +538,10 @@
           const isLight = (files.indexOf(f) + r) % 2 === 0;
           cell.classList.add(isLight ? 'light' : 'dark');
           if (newBoard[cellId]) {
-            cell.textContent = newBoard[cellId] === 'W' ? WHITE_PAWN : BLACK_PAWN;
+            const piece = document.createElement('div');
+            piece.classList.add('mini-piece', newBoard[cellId] === 'W' ? 'white' : 'black');
+            piece.textContent = newBoard[cellId] === 'W' ? WHITE_PAWN : BLACK_PAWN;
+            cell.appendChild(piece);
           }
           miniBoard.appendChild(cell);
         }
@@ -593,7 +622,10 @@
           const isLight = (files.indexOf(f) + r) % 2 === 0;
           cell.classList.add(isLight ? 'light' : 'dark');
           if (boardAfterMove[cellId]) {
-            cell.textContent = boardAfterMove[cellId] === 'W' ? WHITE_PAWN : BLACK_PAWN;
+            const piece = document.createElement('div');
+            piece.classList.add('mini-piece', boardAfterMove[cellId] === 'W' ? 'white' : 'black');
+            piece.textContent = boardAfterMove[cellId] === 'W' ? WHITE_PAWN : BLACK_PAWN;
+            cell.appendChild(piece);
           }
           miniBoard.appendChild(cell);
         }
