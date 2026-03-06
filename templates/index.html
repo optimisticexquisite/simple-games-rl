@@ -451,6 +451,19 @@
       <h3>Candidate Moves</h3>
       <div id="boardCopies"></div>
     </div>
+    <div class="info-container">
+      <h3>How the Q-Values Change</h3>
+        <p style="font-size: 0.9rem; margin-top: 6px; text-align: center;">
+          After each move, see how the Q-values for all possible actions change based on the new board state. This gives insight into the agent's decision-making process and how it evaluates different moves.
+        </p>
+        <ul style="margin: 10px auto 0; max-width: 560px; font-size: 0.92rem; line-height: 1.45;">
+          <li>All moves start with an initial Q-value of <strong>20</strong>.</li>
+          <li>The system was initially trained by playing <strong>30,000 self-play games</strong>.</li>
+          <li>Training continues during gameplay through a continuing cycle of <strong>rewards</strong> (reinforcing good moves) and <strong>penalizations</strong> (discouraging poor moves).</li>
+          <li>The reward modelling is such that the Q values of <strong>ALL THE MOVES</strong> that finally lead to a win are increased by <strong>1</strong>, while those leading to a loss are decreased by <strong>1</strong>.</li>
+          <li>Therefore, as you play, you can see how the Q-values evolve based on the moves made and the resulting board states.</li>
+        </ul>
+    </div>
   </div>
 
   <div id="gameHistory">
